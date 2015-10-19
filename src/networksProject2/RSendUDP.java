@@ -1,6 +1,7 @@
 package networksProject2;
 
 import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -67,7 +68,7 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	@Override
 	public boolean sendFile() {
 		try {
-			
+			buff = new BufferedInputStream(new FileInputStream(getFilename()));
 			byte[] buffer = ("Hello World- or rather Mauricio saying hello through UDP")
 					.getBytes();
 			UDPSocket socket = new UDPSocket(localPort);
