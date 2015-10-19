@@ -13,14 +13,16 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	private long windowSize;
 	private String filename;
 	private BufferedOutputStream buff;
-	private int LFR;
-	private int LAF;
+	private long LFR;
+	private long LAF;
 
 	public RReceiveUDP() {
 		PORT = 32456;
 		reliableMode = 0;
 		windowSize = 256;
 		filename = "tuout.txt";
+		LFR = 0;
+		LAF = LFR+windowSize;
 	}
 
 	public static void main(String[] args) {
@@ -52,7 +54,7 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	public boolean receiveFile() {
 		try {
 			buff = new BufferedOutputStream(new FileOutputStream(getFilename()));
-			byte[] buffer = new byte[11];
+			
 			UDPSocket socket = new UDPSocket(PORT);
 			System.out.println("Receiving "
 					+ getFilename()
@@ -62,6 +64,7 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 					+ socket.getLocalPort()
 					+ (reliableMode == 0 ? " Using stop-and-wait."
 							: "Using sliding window."));
+			byte[] buffer = new byte[socket.getReceiveBufferSize()];
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			socket.receive(packet);
 			InetAddress client = packet.getAddress();
@@ -78,6 +81,7 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 					+ (reliableMode == 0 ? " Using stop-and-wait."
 							: "Using sliding window."));
 			Thread acksender = new ACKsenderThread(socket, packet);
+			buff.write(buffer, 0, buffer.length);
 			acksender.start();
 		} catch (Exception e) {
 			e.printStackTrace();

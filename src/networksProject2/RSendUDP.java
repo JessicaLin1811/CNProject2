@@ -6,6 +6,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 
 import edu.utulsa.unet.UDPSocket;
 
@@ -18,9 +19,11 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	private String filename;
 	private long timeout;
 	private BufferedInputStream buff;
-	private int LAR;
-	private int LFS;
-
+	private long LAR; // last ack received
+	private long LFS; // last frame sent
+	private long CFS; // current frame sending
+	private int seqNum;
+	
 	public RSendUDP() {
 		PORT = 32456;
 		SERVER = new InetSocketAddress("localhost", PORT);
@@ -29,6 +32,9 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 		windowSize = 256;
 		filename = "tu.txt";
 		timeout = 1000;
+		LAR = 0;
+		LFS = LAR + windowSize;
+		seqNum = 0;
 	}
 
 	public static void main(String[] args) {
@@ -71,12 +77,8 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	public boolean sendFile() {
 		try {
 			buff = new BufferedInputStream(new FileInputStream(getFilename()));
-			byte[] buffer = ("Hello World- or rather Mauricio saying hello through UDP")
-					.getBytes();
 			UDPSocket socket = new UDPSocket(localPort);
-			DatagramPacket packet = new DatagramPacket(buffer, buffer.length,
-					getReceiver());
-			socket.send(packet);
+			// printing initial message
 			System.out.println("Sending "
 					+ getFilename()
 					+ " from "
@@ -89,16 +91,31 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 					+ getReceiver().getPort()
 					+ (reliableMode == 0 ? " Using stop-and-wait."
 							: "Using sliding window."));
-			Thread ackreceiver = new ACKreceiverThread(socket);
-			ackreceiver.start();
+			// buffer is going to be used for creating frame's data part.
+			byte[] buffer = new byte[socket.getSendBufferSize()];
+			Frame[] frames = new Frame[buff.available()/(socket.getSendBufferSize()-8)];
+			for(int i = 0; i<frames.length; i++){
+				buff.read(buffer, 0, socket.getSendBufferSize()-8);
+				frames[i].setFrame(ByteBuffer.allocate(8).putInt(seqNum).array(), buffer);
+				seqNum++;
+			}
+			
+	
+			while (LFS < buff.available()/(socket.getSendBufferSize()-8)) {
+				for(int i = 0; i<4; i++){
+					DatagramPacket packet = new DatagramPacket(frames[(int)LFS+i].getframe(),
+							frames[(int)LFS+i].getframe().length, getReceiver());
+					socket.send(packet);
+					Thread ackreceiver = new ACKreceiverThread(socket);
+					ackreceiver.start();
+				}
+			}
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return false;
 	}
-
-	
 
 	@Override
 	public void setFilename(String file) {
