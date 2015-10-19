@@ -6,7 +6,7 @@ import edu.utulsa.unet.UDPSocket;
 
 public class ACKreceiverThread extends Thread {
 	private UDPSocket socket;
-	
+	private int a;
 	public ACKreceiverThread(UDPSocket soc){
 		socket = soc;
 	}

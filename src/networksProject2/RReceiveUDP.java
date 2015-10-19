@@ -1,5 +1,7 @@
 package networksProject2;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 
@@ -10,12 +12,15 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	private int reliableMode;
 	private long windowSize;
 	private String filename;
+	private BufferedOutputStream buff;
+	private int LFR;
+	private int LAF;
 
 	public RReceiveUDP() {
 		PORT = 32456;
 		reliableMode = 0;
 		windowSize = 256;
-		filename = "";
+		filename = "tuout.txt";
 	}
 
 	public static void main(String[] args) {
@@ -46,6 +51,7 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	@Override
 	public boolean receiveFile() {
 		try {
+			buff = new BufferedOutputStream(new FileOutputStream(getFilename()));
 			byte[] buffer = new byte[11];
 			UDPSocket socket = new UDPSocket(PORT);
 			System.out.println("Receiving "
@@ -86,8 +92,8 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	}
 
 	@Override
-	public boolean setLocalPort(int arg0) {
-		// TODO Auto-generated method stub
+	public boolean setLocalPort(int p) {
+		PORT = p;
 		return false;
 	}
 

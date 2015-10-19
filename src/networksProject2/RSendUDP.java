@@ -18,6 +18,8 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	private String filename;
 	private long timeout;
 	private BufferedInputStream buff;
+	private int LAR;
+	private int LFS;
 
 	public RSendUDP() {
 		PORT = 32456;
