@@ -13,8 +13,8 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	private long windowSize;
 	private String filename;
 	private BufferedOutputStream buff;
-	private long LFR;
-	private long LAF;
+	private int LFR;
+	private int LAF;
 
 	public RReceiveUDP() {
 		PORT = 32456;
@@ -22,7 +22,7 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 		windowSize = 256;
 		filename = "tuout.txt";
 		LFR = 0;
-		LAF = LFR+windowSize;
+		LAF = 0;
 	}
 
 	public static void main(String[] args) {

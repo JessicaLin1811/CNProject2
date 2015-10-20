@@ -19,9 +19,9 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	private String filename;
 	private long timeout;
 	private BufferedInputStream buff;
-	private long LAR; // last ack received
-	private long LFS; // last frame sent
-	private long CFS; // current frame sending
+	private int LAR; // last ack received
+	private int LFS; // last frame sent
+	private int CFS; // current frame sending
 	private int seqNum;
 	
 	public RSendUDP() {
@@ -32,8 +32,8 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 		windowSize = 256;
 		filename = "tu.txt";
 		timeout = 1000;
-		LAR = 0;
-		LFS = LAR + windowSize;
+		LFS = 0;
+		LAR = LFS;
 		seqNum = 0;
 	}
 
@@ -77,7 +77,9 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	public boolean sendFile() {
 		try {
 			buff = new BufferedInputStream(new FileInputStream(getFilename()));
+			long fileLength = buff.available();
 			UDPSocket socket = new UDPSocket(localPort);
+			int frameDataLength = socket.getSendBufferSize()-8;
 			// printing initial message
 			System.out.println("Sending "
 					+ getFilename()
@@ -92,19 +94,21 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 					+ (reliableMode == 0 ? " Using stop-and-wait."
 							: "Using sliding window."));
 			// buffer is going to be used for creating frame's data part.
-			byte[] buffer = new byte[socket.getSendBufferSize()];
-			Frame[] frames = new Frame[buff.available()/(socket.getSendBufferSize()-8)];
-			for(int i = 0; i<frames.length; i++){
-				buff.read(buffer, 0, socket.getSendBufferSize()-8);
-				frames[i].setFrame(ByteBuffer.allocate(8).putInt(seqNum).array(), buffer);
-				seqNum++;
+			byte[] buffer = new byte[socket.getSendBufferSize()-8];
+			Frame[] frames = new Frame[(int)(fileLength/(long)frameDataLength)];
+			for(seqNum = 0; seqNum<((int)(fileLength/(long)frameDataLength)); seqNum++){
+				System.out.println(socket.getSendBufferSize());
+				buff.read(buffer, 0, (socket.getSendBufferSize()-8));
+				frames[seqNum] = new Frame();
+				frames[seqNum].setFrame(ByteBuffer.allocate(8).putInt(seqNum).array(), buffer);
 			}
 			
-	
-			while (LFS < buff.available()/(socket.getSendBufferSize()-8)) {
-				for(int i = 0; i<4; i++){
-					DatagramPacket packet = new DatagramPacket(frames[(int)LFS+i].getframe(),
-							frames[(int)LFS+i].getframe().length, getReceiver());
+			while (LFS < ((int)(fileLength/(long)frameDataLength))) {
+			
+				for(seqNum = LFS; (seqNum-LFS) < windowSize; seqNum++){
+					DatagramPacket packet = new DatagramPacket(frames[seqNum].getframe(),
+							frames[seqNum].getframe().length, getReceiver());
+					System.out.println(packet.getData());
 					socket.send(packet);
 					Thread ackreceiver = new ACKreceiverThread(socket);
 					ackreceiver.start();
