@@ -1,9 +1,12 @@
 package networksProject2;
 
+import java.util.Timer;
+
 public class Frame {
 	private byte[] seqNum;
 	private byte[] data;
 	private boolean ackReceived;
+	private Timer timer;
 	
 	public Frame(){
 		ackReceived = false;
@@ -32,6 +35,14 @@ public class Frame {
 
 	public boolean ackReceived(){
 		return ackReceived;
+	}
+	
+	public void startTimer(){
+		
+	}
+	
+	public void cancelTimer(){
+		timer.cancel();
 	}
 
 }
