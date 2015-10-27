@@ -17,13 +17,12 @@ public class ACKreceiverThread extends Thread {
 
 	public void run() {
 		try {
-			byte[] ack = new byte[1024];
+			byte[] ack = new byte[4];
 			DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
 			while (true) {
 				socket.receive(ackPacket);
-				System.out.println("ACK received."
-						+ new String(ackPacket.getData(), 0, ackPacket
-								.getLength()));
+				System.out.println("ACK received for packet "
+						+ byteArrayToInt(ackPacket.getData()));
 				int ackNum = ByteBuffer.wrap(ackPacket.getData()).getInt();
 				if((ackNum >= sender.getLeft())&&(ackNum <= sender.getRight())){
 					sender.setLeft(ackNum);
@@ -34,5 +33,12 @@ public class ACKreceiverThread extends Thread {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	public static int byteArrayToInt(byte[] b) 
+	{
+	    return   b[3] & 0xFF |
+	            (b[2] & 0xFF) << 8 |
+	            (b[1] & 0xFF) << 16 |
+	            (b[0] & 0xFF) << 24;
 	}
 }

@@ -29,6 +29,7 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	private FQueue mQueue;
 	// HashMap to store the frames.Integer is the sequence number
 	private HashMap<Integer, Frame> frames;
+	int frameDataLength;
 
 	public RSendUDP() {
 		PORT = 32456;
@@ -44,6 +45,7 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 		frames = new HashMap<Integer, Frame>();
 		try {
 			socket = new UDPSocket(localPort);
+			frameDataLength = socket.getSendBufferSize() - 4;
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -61,6 +63,12 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 				+ getReceiver().getPort()
 				+ (reliableMode == 0 ? " Using stop-and-wait."
 						: "Using sliding window."));
+		
+		for(int i = 0; i < (windowSize/frameDataLength); i++){
+			readAndOffer();
+		}
+		
+		sendFile();
 	}
 
 	public HashMap<Integer, Frame> getFrames() {
@@ -109,6 +117,16 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 
 		while (!mQueue.isEmpty()) {
 			Message currM = mQueue.poll();
+			Frame currF = frames.get(currM.getSeqNum());
+			DatagramPacket packet = new DatagramPacket(currF.getframe(),
+					currF.getframe().length, getReceiver());
+			try {
+				socket.send(packet);
+				currF.startTimer(this);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 		}
 
@@ -116,24 +134,25 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 
 	}
 
+	public FQueue getmQueue() {
+		return mQueue;
+	}
+
+	public void setmQueue(FQueue mQueue) {
+		this.mQueue = mQueue;
+	}
+
 	public void readAndOffer() {
 		try {
 			buff = new BufferedInputStream(new FileInputStream(getFilename()));
 			long fileLength = buff.available();
-			int frameDataLength = socket.getSendBufferSize() - 4;
+			System.out.println("MTU = " + socket.getSendBufferSize());
 			byte[] buffer = new byte[frameDataLength];
-			while((right-left) < (windowSize/frameDataLength)){
-				buff.read(buffer, right*frameDataLength, frameDataLength);
-				frames.put(right, new Frame(ByteBuffer.allocate(4).putInt(right)
-						.array(), buffer));
-			}
-
-			
-			// DatagramPacket packet = new DatagramPacket(frames.get(right)
-			// .getframe(), frames.get(right).getframe().length,
-			// getReceiver());
-			// socket.send(packet);
-			
+			frameDataLength = (int) (fileLength < frameDataLength ? fileLength
+					: frameDataLength);
+			buff.read(buffer, right * frameDataLength, frameDataLength);
+			frames.put(right, new Frame(ByteBuffer.allocate(4).putInt(right)
+					.array(), buffer, timeout));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -194,6 +213,5 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 
 	public static void main(String[] args) {
 		RSendUDP sender = new RSendUDP();
-		sender.sendFile();
 	}
 }
