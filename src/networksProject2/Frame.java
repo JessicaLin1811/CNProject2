@@ -43,19 +43,11 @@ public class Frame {
 	}
 	
 	public void startTimer(RSendUDP sender){
-		timer.schedule(new ResendFrameThread(sender, byteArrayToInt(seqNum)), delay);
+		timer.schedule(new ResendFrameThread(sender, GlobalFunction.convertByteArrayToInt(seqNum)), delay);
 	}
 	
 	public void cancelTimer(){
 		timer.cancel();
-	}
-	
-	public static int byteArrayToInt(byte[] b) 
-	{
-	    return   b[3] & 0xFF |
-	            (b[2] & 0xFF) << 8 |
-	            (b[1] & 0xFF) << 16 |
-	            (b[0] & 0xFF) << 24;
 	}
 
 }
