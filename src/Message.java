@@ -1,5 +1,3 @@
-package networksProject2;
-
 public class Message {
 	private int seqNum;
 	private boolean isFromeTimer;

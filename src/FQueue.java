@@ -1,4 +1,3 @@
-package networksProject2;
 import java.util.*;
 
 public class FQueue {

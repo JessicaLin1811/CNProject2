@@ -1,5 +1,3 @@
-package networksProject2;
-
 import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
 
@@ -30,5 +28,4 @@ public class ACKreceiverThread extends Thread {
 			e.printStackTrace();
 		}
 	}
-
 }

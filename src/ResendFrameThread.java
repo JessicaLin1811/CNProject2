@@ -1,5 +1,3 @@
-package networksProject2;
-
 import java.util.TimerTask;
 
 public class ResendFrameThread extends TimerTask {

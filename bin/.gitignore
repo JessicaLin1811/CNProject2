@@ -1,2 +1,10 @@
 /networksProject2/
 /GlobalFunction.class
+/.DS_Store
+/ACKreceiverThread.class
+/FQueue.class
+/Frame.class
+/Message.class
+/RReceiveUDP.class
+/RSendUDP.class
+/ResendFrameThread.class

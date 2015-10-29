@@ -1,5 +1,3 @@
-package networksProject2;
-
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -30,17 +28,19 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	private long time;
 	private int lastFrameSeq;
 	private long totalFileLength;
+	private long mtu;
 
 	public RSendUDP() {
 		totalFileLength = 0;
 		PORT = 32456;
+//		SERVER = new InetSocketAddress("129.244.55.185", PORT);
 		SERVER = new InetSocketAddress("localhost", PORT);
 		localPort = 12987;
 		reliableMode = 0;
-		windowSize = 6000;
-		filename = "TestVideo.mov";
-		// filename = "IMG_1823s.jpg";
-		timeout = 1000;
+		windowSize = 256;
+		// filename = "TestVideo2.mov";
+		filename = "";
+		timeout = 1500;
 		left = 0;
 		right = 0;
 		mQueue = new FQueue();
@@ -49,16 +49,12 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 		lastFrameSeq = Integer.MAX_VALUE;
 		try {
 			socket = new UDPSocket(localPort);
+			mtu = socket.getSendBufferSize();
 			frameDataLength = socket.getSendBufferSize() - 4;
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
-		try {
-			buff = new BufferedInputStream(new FileInputStream(getFilename()));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		sendFile();
+		
 	}
 
 	public HashMap<Integer, Frame> getFrames() {
@@ -101,6 +97,11 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 
 	@Override
 	public boolean sendFile() {
+		try {
+			buff = new BufferedInputStream(new FileInputStream(getFilename()));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 		time = System.currentTimeMillis();
 		// Start the ack receiver thread
 		Thread ackreceiver = new ACKreceiverThread(socket, this);
@@ -268,7 +269,6 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	@Override
 	public void setFilename(String file) {
 		filename = file;
-
 	}
 
 	@Override
@@ -280,12 +280,16 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	@Override
 	public boolean setMode(int mode) {
 		reliableMode = mode;
+		setModeParameter(windowSize);
 		return true;
 	}
 
 	@Override
 	public boolean setModeParameter(long size) {
-		windowSize = size;
+		if(reliableMode == 0)
+			windowSize = mtu;
+		else
+			windowSize = size;
 		return true;
 	}
 
@@ -301,7 +305,15 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 		return true;
 	}
 
+
 	public static void main(String[] args) {
 		RSendUDP sender = new RSendUDP();
+		sender.setMode(1);
+		sender.setModeParameter(6000);
+		sender.setTimeout(1000);
+		sender.setFilename("1.jpg");
+		sender.setLocalPort(23456);
+		sender.setReceiver(new InetSocketAddress(("127.0.0.1"),32456));
+		sender.sendFile();
 	}
 }

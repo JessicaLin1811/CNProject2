@@ -1,5 +1,3 @@
-package networksProject2;
-
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.net.DatagramPacket;
@@ -25,19 +23,21 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	private long fileLength;
 	private long countBytes;
 	private long time;
+	private long mtu;
 
 	public RReceiveUDP() {
 		time = 0;
 		PORT = 32456;
 		reliableMode = 0;
-		windowSize = 6000;
-		filename = "TestVideoOut.mov";
+		windowSize = 256;
+		filename = "";
 		// filename = "imgout.jpg";
 		recMap = new HashMap<Integer, byte[]>();
 		try {
 			socket = new UDPSocket(PORT);
+			mtu = socket.getSendBufferSize();
 			left = 0;
-			right = (int) windowSize / (socket.getSendBufferSize() - 4);
+			right = (int) (windowSize / (mtu - 4));
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
@@ -51,12 +51,11 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 				+ socket.getLocalPort()
 				+ (reliableMode == 0 ? " Using stop-and-wait."
 						: "Using sliding window."));
-		receiveFile();
 	}
 
-	public static void main(String[] args) {
-		RReceiveUDP rreceiveUDP = new RReceiveUDP();
-	}
+//	public static void main(String[] args) {
+//		RReceiveUDP rreceiveUDP = new RReceiveUDP();
+//	}
 
 	@Override
 	public String getFilename() {
@@ -122,7 +121,7 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 						if (seqNum != 0) {
 							buff.write(databuffer, 0, databuffer.length);
 							countBytes += databuffer.length;
-							System.out.println("bufferLength is: "+databuffer.length+", countBytes: "+countBytes+"total Length is: "+fileLength);
+							// System.out.println("bufferLength is: "+databuffer.length+", countBytes: "+countBytes+"total Length is: "+fileLength);
 						}
 						left++;
 						right++;
@@ -153,7 +152,6 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	@Override
 	public void setFilename(String file) {
 		filename = file;
-
 	}
 
 	@Override
@@ -165,13 +163,25 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	@Override
 	public boolean setMode(int mode) {
 		reliableMode = mode;
+		setModeParameter(windowSize);
 		return true;
 	}
 
 	@Override
-	public boolean setModeParameter(long ws) {
-		windowSize = ws;
+	public boolean setModeParameter(long size) {
+		if(reliableMode == 0)
+			windowSize = mtu;
+		else
+			windowSize = size;
 		return true;
 	}
-
+	
+	public static void main(String[] args){
+		RReceiveUDP r = new RReceiveUDP();
+		r.setMode(1);
+		r.setModeParameter(6000);			
+		r.setFilename("1out.jpg");
+		r.setLocalPort(32456);
+		r.receiveFile();
+	}
 }

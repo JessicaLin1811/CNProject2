@@ -1,5 +1,3 @@
-package networksProject2;
-
 import java.net.DatagramPacket;
 import java.util.Timer;
 import java.util.TimerTask;

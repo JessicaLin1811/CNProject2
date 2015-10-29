@@ -1,5 +1,3 @@
-package networksProject2;
-
 public class GlobalFunction {
 	public static final int iMyheader = 4;
 	
