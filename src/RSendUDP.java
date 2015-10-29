@@ -229,7 +229,7 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 						+ fileLength
 						+ " bytes "
 						+ (reliableMode == 0 ? " Using stop-and-wait."
-								: "Using sliding window."));
+								: " Using sliding window."));
 				return frames.get(0);
 			}
 			if(fileLength == 0){
@@ -309,9 +309,9 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	public static void main(String[] args) {
 		RSendUDP sender = new RSendUDP();
 		sender.setMode(1);
-		sender.setModeParameter(6000);
+		sender.setModeParameter(600);
 		sender.setTimeout(1000);
-		sender.setFilename("1.jpg");
+		sender.setFilename("tu.txt");
 		sender.setLocalPort(23456);
 		sender.setReceiver(new InetSocketAddress(("127.0.0.1"),32456));
 		sender.sendFile();

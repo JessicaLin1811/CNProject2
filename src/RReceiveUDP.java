@@ -43,14 +43,6 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 		}
 		countBytes = 0;
 		fileLength = windowSize*10;
-		System.out.println("Receiving "
-				+ getFilename()
-				+ " on "
-				+ socket.getLocalAddress().getHostAddress()
-				+ ":"
-				+ socket.getLocalPort()
-				+ (reliableMode == 0 ? " Using stop-and-wait."
-						: "Using sliding window."));
 	}
 
 //	public static void main(String[] args) {
@@ -80,6 +72,14 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	@Override
 	public boolean receiveFile() {
 		try {
+			System.out.println("Receiving "
+				+ getFilename()
+				+ " on "
+				+ socket.getLocalAddress().getHostAddress()
+				+ ":"
+				+ socket.getLocalPort()
+				+ (reliableMode == 0 ? " Using stop-and-wait."
+						: " Using sliding window."));
 			buff = new BufferedOutputStream(new FileOutputStream(filename));
 			byte[] buffer = new byte[socket.getSendBufferSize()];
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -107,7 +107,7 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 							+ fileLength
 							+ " bytes "
 							+ (reliableMode == 0 ? " Using stop-and-wait."
-									: "Using sliding window."));
+									: " Using sliding window."));
 				}
 				byte[] databuffer = Arrays.copyOfRange(buffer, 4,
 						packet.getLength());
@@ -131,16 +131,18 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 					saveData = packet.getData().clone();
 					recMap.put(seqNum, saveData);
 				}
-				System.out.println("Sending message "+(left - 1 )+" ack.");
-				byte[] ack = GlobalFunction.convertIntToByteArray(left - 1);
-				DatagramPacket sendACK = new DatagramPacket(ack, ack.length,
-						packet.getAddress(), packet.getPort());
-				socket.send(sendACK);
+				if(left > 0){
+					System.out.println("Sending message "+(left - 1 )+"'s ack.");
+					byte[] ack = GlobalFunction.convertIntToByteArray(left - 1);
+					DatagramPacket sendACK = new DatagramPacket(ack, ack.length,
+							packet.getAddress(), packet.getPort());
+					socket.send(sendACK);
+				}
 				
 				if(countBytes >= fileLength){
+					buff.close();
 					time = System.currentTimeMillis() - time;
 					System.out.println("Successfully transferred "+filename+" ("+fileLength+" bytes) in "+(time/1000)+" seconds");
-					buff.close();
 				}
 			}
 		} catch (Exception e) {
@@ -179,8 +181,8 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	public static void main(String[] args){
 		RReceiveUDP r = new RReceiveUDP();
 		r.setMode(1);
-		r.setModeParameter(6000);			
-		r.setFilename("1out.jpg");
+		r.setModeParameter(1200);			
+		r.setFilename("tuout.txt");
 		r.setLocalPort(32456);
 		r.receiveFile();
 	}
