@@ -33,14 +33,6 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 		filename = "";
 		// filename = "imgout.jpg";
 		recMap = new HashMap<Integer, byte[]>();
-		try {
-			socket = new UDPSocket(PORT);
-			mtu = socket.getSendBufferSize();
-			left = 0;
-			right = (int) (windowSize / (mtu - 4));
-		} catch (SocketException e) {
-			e.printStackTrace();
-		}
 		countBytes = 0;
 		fileLength = windowSize*10;
 	}
@@ -72,6 +64,10 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 	@Override
 	public boolean receiveFile() {
 		try {
+			socket = new UDPSocket(PORT);
+			mtu = socket.getSendBufferSize();
+			left = 0;
+			right = (int) (windowSize / (mtu - 4));
 			System.out.println("Receiving "
 				+ getFilename()
 				+ " on "
@@ -183,7 +179,7 @@ public class RReceiveUDP implements edu.utulsa.unet.RReceiveUDPI {
 		r.setMode(1);
 		r.setModeParameter(1200);			
 		r.setFilename("tuout.txt");
-		r.setLocalPort(32456);
+		r.setLocalPort(32457);
 		r.receiveFile();
 	}
 }

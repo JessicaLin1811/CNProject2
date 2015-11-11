@@ -47,13 +47,7 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 		frames = new HashMap<Integer, Frame>();
 		time = 0;
 		lastFrameSeq = Integer.MAX_VALUE;
-		try {
-			socket = new UDPSocket(localPort);
-			mtu = socket.getSendBufferSize();
-			frameDataLength = socket.getSendBufferSize() - 4;
-		} catch (SocketException e) {
-			e.printStackTrace();
-		}
+		
 		
 	}
 
@@ -97,6 +91,13 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 
 	@Override
 	public boolean sendFile() {
+		try {
+			socket = new UDPSocket(localPort);
+			mtu = socket.getSendBufferSize();
+			frameDataLength = socket.getSendBufferSize() - 4;
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
 		try {
 			buff = new BufferedInputStream(new FileInputStream(getFilename()));
 		} catch (FileNotFoundException e) {
@@ -309,11 +310,11 @@ public class RSendUDP implements edu.utulsa.unet.RSendUDPI {
 	public static void main(String[] args) {
 		RSendUDP sender = new RSendUDP();
 		sender.setMode(1);
-		sender.setModeParameter(600);
+		sender.setModeParameter(1200);
 		sender.setTimeout(1000);
 		sender.setFilename("tu.txt");
-		sender.setLocalPort(23456);
-		sender.setReceiver(new InetSocketAddress(("127.0.0.1"),32456));
+		sender.setLocalPort(23455);
+		sender.setReceiver(new InetSocketAddress(("localhost"),32457));
 		sender.sendFile();
 	}
 }
